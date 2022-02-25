@@ -80,7 +80,7 @@ def command_handler(vk_token, quiz_text):
 
 if __name__ == "__main__":
     load_dotenv()
-    vk_token = os.environ['VK_API_KEY']
+    vk_token = os.environ['VK_GROUP_TOKEN']
     database_password = os.environ['REDIS_DATABASE_PASSWORD']
     redis_port = os.environ['REDIS_PORT']
     redis_host = os.environ['REDIS_HOST']
