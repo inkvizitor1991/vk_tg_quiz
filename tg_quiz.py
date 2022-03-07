@@ -25,12 +25,12 @@ class BOT_STATE(Enum):
 
 CHOOSING = range(BOT_STATE.QUIZ.value)
 
-custom_keyboard = [
+CUSTOM_KEYBOARD = [
     ['Новый вопрос', 'Сдаться'],
     ['Мой счет']
 ]
-reply_markup = telegram.ReplyKeyboardMarkup(
-    custom_keyboard,
+REPLY_MARKUP = telegram.ReplyKeyboardMarkup(
+    CUSTOM_KEYBOARD,
     resize_keyboard=True,
     one_time_keyboard=True
 )
@@ -47,7 +47,7 @@ def start(bot, update):
     bot.send_message(
         chat_id=chat_id,
         text=text,
-        reply_markup=reply_markup
+        reply_markup=REPLY_MARKUP
     )
     return CHOOSING
 
@@ -73,7 +73,7 @@ def handle_solution_attempt(bot, update):
     bot.send_message(
         chat_id=chat_id,
         text=text,
-        reply_markup=reply_markup
+        reply_markup=REPLY_MARKUP
     )
     return CHOOSING
 
@@ -86,7 +86,7 @@ def handle_show_correct_answer(bot, update):
     bot.send_message(
         chat_id=chat_id,
         text=answer,
-        reply_markup=reply_markup
+        reply_markup=REPLY_MARKUP
     )
     return CHOOSING
 
