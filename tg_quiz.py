@@ -66,7 +66,7 @@ def handle_solution_attempt(bot, update):
     quiz_text = storage_quiz_text[user_id].get('quiz')
     question = redis.get(update.message.chat_id).decode("utf-8")
 
-    if str(update.message.text).upper() == quiz_text[question]:
+    if update.message.text.upper() == quiz_text[question]:
         text = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».'
     else:
         text = 'Неправильно… Попробуешь ещё раз?'
