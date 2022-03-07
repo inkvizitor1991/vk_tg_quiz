@@ -19,11 +19,9 @@ logger = logging.getLogger(__name__)
 storage_quiz_text = defaultdict()
 
 
-class BOT_STATE(Enum):
-    QUIZ = 1
 
 
-CHOOSING = range(BOT_STATE.QUIZ.value)
+CHOOSING = range(1)
 
 CUSTOM_KEYBOARD = [
     ['Новый вопрос', 'Сдаться'],
