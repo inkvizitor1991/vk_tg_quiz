@@ -4,8 +4,6 @@ import redis
 import logging
 import telegram
 
-from collections import defaultdict
-from enum import Enum
 from random import choice
 from dotenv import load_dotenv
 from telegram.ext import (
@@ -14,11 +12,10 @@ from telegram.ext import (
     RegexHandler, ConversationHandler
 )
 
+from create_dictionary_questions_answers import get_questions_answer
+
+
 logger = logging.getLogger(__name__)
-
-storage_quiz_text = defaultdict()
-
-
 
 
 CHOOSING = range(1)
@@ -36,12 +33,6 @@ REPLY_MARKUP = telegram.ReplyKeyboardMarkup(
 
 def start(bot, update):
     text = 'Привет! Я бот для викторин!'
-    user_id = update.message.chat_id
-    storage_quiz_text[user_id] = {}
-    with open('questions_answer.json', 'r') as quiz_file:
-        quiz_text = json.load(quiz_file)
-    storage_quiz_text[user_id]['quiz'] = quiz_text
-
     bot.send_message(
         chat_id=chat_id,
         text=text,
@@ -51,20 +42,19 @@ def start(bot, update):
 
 
 def handle_new_question_request(bot, update):
-    user_id = update.message.chat_id
-    quiz_text = storage_quiz_text[user_id].get('quiz')
-    question = choice(list(quiz_text))
+    questions_answer = get_questions_answer()
+    question = choice(list(questions_answer))
+    print(questions_answer[question])
     redis.set(update.message.chat_id, question)
     update.message.reply_text(question)
     return CHOOSING
 
 
 def handle_solution_attempt(bot, update):
-    user_id = update.message.chat_id
-    quiz_text = storage_quiz_text[user_id].get('quiz')
+    questions_answer = get_questions_answer()
     question = redis.get(update.message.chat_id).decode("utf-8")
 
-    if update.message.text.upper() == quiz_text[question]:
+    if update.message.text.upper() == questions_answer[question]:
         text = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».'
     else:
         text = 'Неправильно… Попробуешь ещё раз?'
@@ -77,10 +67,9 @@ def handle_solution_attempt(bot, update):
 
 
 def handle_show_correct_answer(bot, update):
-    user_id = update.message.chat_id
-    quiz_text = storage_quiz_text[user_id].get('quiz')
+    questions_answer = get_questions_answer()
     question = redis.get(update.message.chat_id).decode("utf-8")
-    answer = quiz_text[question]
+    answer = questions_answer[question]
     bot.send_message(
         chat_id=chat_id,
         text=answer,
