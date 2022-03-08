@@ -1,5 +1,4 @@
 import os
-import json
 import redis
 import logging
 import telegram
