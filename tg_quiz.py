@@ -43,7 +43,6 @@ def start(bot, update):
 def handle_new_question_request(bot, update):
     questions_answer = get_questions_answer()
     question = choice(list(questions_answer))
-    print(questions_answer[question])
     redis.set(update.message.chat_id, question)
     update.message.reply_text(question)
     return CHOOSING

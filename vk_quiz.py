@@ -51,11 +51,15 @@ def handle_show_correct_answer(event, vk_api, questions_answer, redis, keyboard)
     )
 
 
-def add_keyboard_and_process_commands(vk_token, questions_answer):
+def add_keyboard():
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
     keyboard.add_button('Сдаться', color=VkKeyboardColor.PRIMARY)
     keyboard.add_button('Мой счет', color=VkKeyboardColor.NEGATIVE)
+    return keyboard
+
+
+def process_commands(vk_token, questions_answer, keyboard):
     vk_session = vk.VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
@@ -94,4 +98,5 @@ if __name__ == "__main__":
     )
 
     questions_answer = get_questions_answer()
-    add_keyboard_and_process_commands(vk_token, questions_answer)
+    keyboard = add_keyboard()
+    process_commands(vk_token, questions_answer, keyboard)
