@@ -1,4 +1,5 @@
 import os
+import json
 import redis
 import logging
 import telegram
@@ -37,11 +38,15 @@ def start(bot, update):
         text=text,
         reply_markup=REPLY_MARKUP
     )
+    questions_answer = json.dumps(get_questions_answer())
+    redis.set('questions_answer', questions_answer)
     return CHOOSING
 
 
 def handle_new_question_request(bot, update):
-    questions_answer = get_questions_answer()
+    questions_answer = json.loads(
+        redis.get('questions_answer').decode("utf-8")
+    )
     question = choice(list(questions_answer))
     redis.set(update.message.chat_id, question)
     update.message.reply_text(question)
@@ -49,9 +54,10 @@ def handle_new_question_request(bot, update):
 
 
 def handle_solution_attempt(bot, update):
-    questions_answer = get_questions_answer()
+    questions_answer = json.loads(
+        redis.get('questions_answer').decode("utf-8")
+    )
     question = redis.get(update.message.chat_id).decode("utf-8")
-
     if update.message.text.upper() == questions_answer[question]:
         text = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».'
     else:
