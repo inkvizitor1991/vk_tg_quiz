@@ -5,6 +5,7 @@ import logging
 import telegram
 
 from random import choice
+from functools import partial
 from dotenv import load_dotenv
 from telegram.ext import (
     Updater, CommandHandler,
@@ -14,9 +15,7 @@ from telegram.ext import (
 
 from create_dictionary_questions_answers import get_questions_answer
 
-
 logger = logging.getLogger(__name__)
-
 
 CHOOSING = range(1)
 
@@ -38,25 +37,17 @@ def start(bot, update):
         text=text,
         reply_markup=REPLY_MARKUP
     )
-    questions_answer = json.dumps(get_questions_answer())
-    redis.set('questions_answer', questions_answer)
     return CHOOSING
 
 
-def handle_new_question_request(bot, update):
-    questions_answer = json.loads(
-        redis.get('questions_answer').decode("utf-8")
-    )
+def handle_new_question_request(bot, update, questions_answer):
     question = choice(list(questions_answer))
     redis.set(update.message.chat_id, question)
     update.message.reply_text(question)
     return CHOOSING
 
 
-def handle_solution_attempt(bot, update):
-    questions_answer = json.loads(
-        redis.get('questions_answer').decode("utf-8")
-    )
+def handle_solution_attempt(bot, update, questions_answer):
     question = redis.get(update.message.chat_id).decode("utf-8")
     if update.message.text.upper() == questions_answer[question]:
         text = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».'
@@ -70,8 +61,7 @@ def handle_solution_attempt(bot, update):
     return CHOOSING
 
 
-def handle_show_correct_answer(bot, update):
-    questions_answer = get_questions_answer()
+def handle_show_correct_answer(bot, update, questions_answer):
     question = redis.get(update.message.chat_id).decode("utf-8")
     answer = questions_answer[question]
     bot.send_message(
@@ -104,16 +94,23 @@ if __name__ == '__main__':
     updater = Updater(bot_token)
     dispatcher = updater.dispatcher
 
+    questions_answer = get_questions_answer()
+
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
             CHOOSING: [RegexHandler('^Новый вопрос$',
-                                    handle_new_question_request,
+                                    partial(handle_new_question_request,
+                                            questions_answer=questions_answer),
                                     ),
                        RegexHandler('^Сдаться$',
-                                    handle_show_correct_answer,
+                                    partial(handle_show_correct_answer,
+                                            questions_answer=questions_answer),
                                     ),
-                       MessageHandler(Filters.text, handle_solution_attempt)
+                       MessageHandler(Filters.text,
+                                      partial(handle_solution_attempt,
+                                              questions_answer=questions_answer),
+                                      )
                        ],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
